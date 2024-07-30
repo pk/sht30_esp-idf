@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+/home/petr/esp/sht30_library/examples/freertos_periodic/build/CMakeFiles/bootloader
+/home/petr/esp/sht30_library/examples/freertos_periodic/build/CMakeFiles/bootloader.rule
+/home/petr/esp/sht30_library/examples/freertos_periodic/build/CMakeFiles/bootloader-complete.rule
+/home/petr/esp/sht30_library/examples/freertos_periodic/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+/home/petr/esp/sht30_library/examples/freertos_periodic/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+/home/petr/esp/sht30_library/examples/freertos_periodic/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+/home/petr/esp/sht30_library/examples/freertos_periodic/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+/home/petr/esp/sht30_library/examples/freertos_periodic/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+/home/petr/esp/sht30_library/examples/freertos_periodic/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+/home/petr/esp/sht30_library/examples/freertos_periodic/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
