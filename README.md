@@ -20,7 +20,7 @@ To use the SHT30 library, follow these steps:
 
 1. **Clone the repository:**
 
-   `got clone https://github.com/petrcernyy/sht30_library`
+   `git clone https://github.com/petrcernyy/sht30_library`
 
 2. **Change the CMakeList.txt:**
 
