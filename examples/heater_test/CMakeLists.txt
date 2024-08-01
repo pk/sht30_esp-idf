@@ -4,6 +4,5 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.16)
 
-set(EXTRA_COMPONENT_DIRS ~/esp/sht30_library/component)
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(heater_test)

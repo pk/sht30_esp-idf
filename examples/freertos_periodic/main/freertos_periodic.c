@@ -37,13 +37,18 @@ void readData(void *parameter){
 void printData(void *parameter){
 
     float temp;
+    float humidity;
+
+    vTaskDelay(5000 / 10);
 
     while(1){
 
         temp = sht30_read_temperature_celsius(&sht30);
+        humidity = sht30_read_humidity(&sht30);
 
         ESP_LOGI(TAG_PrintData, "Printing data...");
-        printf("Teplota je: %.2f\n", temp);
+        ESP_LOGI(TAG_PrintData, "Temperature is: %.2f", temp);
+        ESP_LOGI(TAG_PrintData, "Humidity is: %.2f", humidity);
         vTaskDelay(500 / 10);
     }
 }

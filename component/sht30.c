@@ -1,9 +1,14 @@
 #include "sht30.h"
+
+static const char *TAG_SHT30 = "SHT30";
+
 i2c_master_dev_handle_t dev_handle;
 
 
 sht30_status_t sht30_init(sht30_t *sht30, uint8_t _i2c_port, uint8_t _scl_io_num, uint8_t _sda_io_num,
-                        uint8_t _device_address, uint16_t _scl_speed_hz, uint32_t _scl_wait_us) {
+                        uint8_t _device_address, uint16_t _scl_speed_hz, uint32_t _scl_wait_us) 
+{
+    esp_err_t status;
 
     i2c_master_bus_config_t i2c_mst_config = {
         .clk_source = 11,
@@ -15,7 +20,11 @@ sht30_status_t sht30_init(sht30_t *sht30, uint8_t _i2c_port, uint8_t _scl_io_num
     };
 
     i2c_master_bus_handle_t bus_handle;
-    ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_mst_config, &bus_handle));
+    status = i2c_new_master_bus(&i2c_mst_config, &bus_handle);
+    if (status != ESP_OK) {
+        ESP_LOGI(TAG_SHT30, "Error while inicializating new i2c master bus.");
+        return init_error;
+    }
 
     i2c_device_config_t dev_cfg = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
@@ -24,46 +33,47 @@ sht30_status_t sht30_init(sht30_t *sht30, uint8_t _i2c_port, uint8_t _scl_io_num
         .scl_wait_us = _scl_wait_us,
     };
 
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handle));
+    status = i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handle);
+    if (status != ESP_OK) {
+        ESP_LOGI(TAG_SHT30, "Error while adding i2c device on bus.");
+        return init_error;
+    }
 
     return ok;
-
 }
 
-sht30_status_t sht30_write(sht30_t *sht30, uint8_t *command){
-
+sht30_status_t sht30_write(sht30_t *sht30, uint8_t *command)
+{
     esp_err_t err = i2c_master_transmit(dev_handle, command, CommandLength, -1);
 
-    if (err == ESP_ERR_INVALID_ARG){
+    if (err != ESP_OK) {
         return error;
     }
 
     return ok;
-
 }
 
-sht30_status_t sht30_read(sht30_t *sht30, uint8_t *dataRec, size_t len){
-
+sht30_status_t sht30_read(sht30_t *sht30, uint8_t *dataRec, size_t len)
+{
     esp_err_t err = i2c_master_receive(dev_handle, dataRec, len, -1);
 
-    if (err == ESP_ERR_INVALID_ARG){
-        return error;
-    }
-    else if (err == ESP_ERR_INVALID_STATE){
+    if (err == ESP_ERR_INVALID_STATE) {
         return data_not_ready;
+    }
+    else if (err != ESP_OK) {
+        return error;
     }
 
     return ok;
-
 }
 
-sht30_status_t sht30_single_shot(sht30_t *sht30, sht30_repeatability_t repeatability, sht30_clock_stretching_t clock){
-
+sht30_status_t sht30_single_shot(sht30_t *sht30, sht30_repeatability_t repeatability, sht30_clock_stretching_t clock)
+{
     sht30_status_t status;
     uint8_t command[2];
     uint8_t returnData[6];
 
-    switch(clock){
+    switch(clock) {
         case ClockStretching_Enable:
             command[0] = SingleShot_CS;
             switch(repeatability){
@@ -96,33 +106,37 @@ sht30_status_t sht30_single_shot(sht30_t *sht30, sht30_repeatability_t repeatabi
 
     status = sht30_write(sht30, command);
 
-    if (status != ok){
-        ESP_LOGI(TAG_SHT30, "Error %d\n",status);
-        return status;
+    if (status != ok) {
+        ESP_LOGI(TAG_SHT30, "Error writing command.\n");
+        return error;
+    }
+
+    if (clock == ClockStretching_Disable) {
+        vTaskDelay( 100 / portTICK_PERIOD_MS);
     }
 
     status = sht30_read(sht30, returnData, 6);
 
-    if (status == data_not_ready){
-        ESP_LOGI(TAG_SHT30, "Data not ready\n");
+    if (status == data_not_ready) {
+        ESP_LOGI(TAG_SHT30, "Data not ready.\n");
         return data_not_ready;
     }
-    else if (status != ok){
-        ESP_LOGI(TAG_SHT30, "Error %d\n",status);
-        return status;
+    else if (status != ok) {
+        ESP_LOGI(TAG_SHT30, "Error reading data.\n");
+        return error;
     }
 
     uint8_t crc_temp = sht30_calculate_crc(sht30, returnData);
 
-    if (crc_temp != returnData[2]){
-        ESP_LOGI(TAG_SHT30, "Temperature data not valid\n");
+    if (crc_temp != returnData[2]) {
+        ESP_LOGI(TAG_SHT30, "Temperature data not valid.\n");
         return data_not_valid;
     }
 
     uint8_t crc_hum = sht30_calculate_crc(sht30, &returnData[3]);
 
-    if (crc_hum != returnData[5]){
-        ESP_LOGI(TAG_SHT30, "Temperature data not valid\n");
+    if (crc_hum != returnData[5]) {
+        ESP_LOGI(TAG_SHT30, "Humidity data not valid.\n");
         return data_not_valid;
     }
 
@@ -130,14 +144,13 @@ sht30_status_t sht30_single_shot(sht30_t *sht30, sht30_repeatability_t repeatabi
     sht30->humidity = (returnData[3] << 8) | returnData[4];
 
     return ok;
-
 }
 
-sht30_status_t sht30_periodic(sht30_t *sht30, sht30_repeatability_t repeatability, sht30_measurements_per_seconds_t mps){
-
+sht30_status_t sht30_periodic(sht30_t *sht30, sht30_repeatability_t repeatability, sht30_measurements_per_seconds_t mps)
+{
     uint8_t command[2];
 
-    switch(mps){
+    switch(mps) {
         case MPS_05:
             command[0] = Periodic_05;
             switch(repeatability){
@@ -212,49 +225,48 @@ sht30_status_t sht30_periodic(sht30_t *sht30, sht30_repeatability_t repeatabilit
 
     sht30_status_t status = sht30_write(sht30, command);
 
-    if (status != ok){
-        ESP_LOGI(TAG_SHT30, "Error %d\n",status);
-        return status;
+    if (status != ok) {
+        ESP_LOGI(TAG_SHT30, "Error writing command.\n");
+        return error;
     }
 
     return ok;
-
 }
 
-sht30_status_t sht30_fetch_data(sht30_t *sht30){
-    
+sht30_status_t sht30_fetch_data(sht30_t *sht30)
+{
     uint8_t command[2] = {FetchCommand >> 8, FetchCommand & 0x00FF};
     uint8_t returnData[6];
     sht30_status_t status;
 
     status = sht30_write(sht30, command);
 
-    if (status != ok){
-        ESP_LOGI(TAG_SHT30, "Error %d\n",status);
-        return status;
+    if (status != ok) {
+        ESP_LOGI(TAG_SHT30, "Error writing command.\n");
+        return error;
     }
 
     status = sht30_read(sht30, returnData, 6);
 
-    if (status == data_not_ready){
-        ESP_LOGI(TAG_SHT30, "Data not ready\n");
+    if (status == data_not_ready) { 
+        ESP_LOGI(TAG_SHT30, "Data not ready.\n");
         return data_not_ready;
     }
-    else if (status != ok){
-        ESP_LOGI(TAG_SHT30, "Error %d\n",status);
-        return status;
+    else if (status != ok) {
+        ESP_LOGI(TAG_SHT30, "Error reading data.\n");
+        return error;
     }
 
     uint8_t crc_temp = sht30_calculate_crc(sht30, returnData);
 
-    if (crc_temp != returnData[2]){
+    if (crc_temp != returnData[2]) {
         ESP_LOGI(TAG_SHT30, "Temperature data not valid\n");
         return data_not_valid;
     }
 
     uint8_t crc_hum = sht30_calculate_crc(sht30, &returnData[3]);
 
-    if (crc_hum != returnData[5]){
+    if (crc_hum != returnData[5]) {
         ESP_LOGI(TAG_SHT30, "Temperature data not valid\n");
         return data_not_valid;
     }
@@ -263,63 +275,59 @@ sht30_status_t sht30_fetch_data(sht30_t *sht30){
     sht30->humidity = (returnData[3] << 8) | returnData[4];
 
     return ok;
-
 }
 
-sht30_status_t sht30_art(sht30_t *sht30){
-
+sht30_status_t sht30_art(sht30_t *sht30)
+{
     uint8_t command[2] = {ARTCommand >> 8, ARTCommand & 0x00FF};
     sht30_status_t status;
 
     status = sht30_write(sht30, command);
 
-    if (status != ok){
+    if (status != ok) {
         ESP_LOGI(TAG_SHT30, "Error %d\n",status);
         return status;
     }
 
     return ok;
-
 }
 
-sht30_status_t sht30_break(sht30_t *sht30){
-
+sht30_status_t sht30_break(sht30_t *sht30)
+{
     uint8_t command[2] = {BreakCommand >> 8, BreakCommand & 0x00FF};
     sht30_status_t status;
 
     status = sht30_write(sht30, command);
 
-    if (status != ok){
-        ESP_LOGI(TAG_SHT30, "Error %d\n",status);
-        return status;
+    if (status != ok) {
+        ESP_LOGI(TAG_SHT30, "Error writing command.\n");
+        return error;
     }
 
     return ok;
-
 }
 
-sht30_status_t sht30_soft_reset(sht30_t *sht30){
-
+sht30_status_t sht30_soft_reset(sht30_t *sht30)
+{
     uint8_t command[2] = {SoftResetCommand >> 8, SoftResetCommand & 0x00FF};
     sht30_status_t status;
 
     status = sht30_write(sht30, command);
 
-    if (status != ok){
-        ESP_LOGI(TAG_SHT30, "Error %d\n",status);
-        return status;
+    if (status != ok) {
+        ESP_LOGI(TAG_SHT30, "Error writing command.\n");
+        return error;
     }
 
     return ok;
-
 }
 
-sht30_status_t sht30_heater_control(sht30_t *sht30, sht30_heater_t control){
-
+sht30_status_t sht30_heater_control(sht30_t *sht30, sht30_heater_t control)
+{
     uint8_t command[2] = {Heater};
     sht30_status_t status;
 
-    switch(control){
+    switch(control) {
         case Heater_Disable:
             command[1] = HeaterDisable;
             break;
@@ -330,65 +338,107 @@ sht30_status_t sht30_heater_control(sht30_t *sht30, sht30_heater_t control){
 
     status = sht30_write(sht30, command);
 
-    if (status != ok){
-        ESP_LOGI(TAG_SHT30, "Error %d\n",status);
-        return status;
+    if (status != ok) {
+        ESP_LOGI(TAG_SHT30, "Error writing command.\n");
+        return error;
     }
 
     return ok;
-
 }
 
-sht30_status_t sht30_read_status_register(sht30_t *sht30){
-
+sht30_status_t sht30_read_status_register(sht30_t *sht30)
+{
     uint8_t command[2] = {StatusRegister >> 8, StatusRegister & 0x00FF};
     uint8_t returnData[3];
     sht30_status_t status;
 
     status = sht30_write(sht30, command);
 
-    if (status != ok){
-        ESP_LOGI(TAG_SHT30, "Error %d\n",status);
-        return status;
+    if (status != ok) {
+        ESP_LOGI(TAG_SHT30, "Error writing command.\n");
+        return error;
     }
 
     status = sht30_read(sht30, returnData, sizeof(returnData)/sizeof(returnData[0]));
 
-    if (status != ok){
-        ESP_LOGI(TAG_SHT30, "Error %d\n",status);
-        return status;
+    if (status != ok) {
+        ESP_LOGI(TAG_SHT30, "Error reading data.\n");
+        return error;
     }
 
     uint8_t crc_temp = sht30_calculate_crc(sht30, returnData);
 
-    if (crc_temp != returnData[2]){
-        ESP_LOGI(TAG_SHT30, "Data not valid\n");
+    if (crc_temp != returnData[2]) {
+        ESP_LOGI(TAG_SHT30, "Data not valid.\n");
         return data_not_valid;
     }
 
-    return ok;
+    ESP_LOGI(TAG_SHT30, "--------------READING STATUS REGISTER--------------");
 
+    if (returnData[0] & (1 << 7)) {
+        ESP_LOGI(TAG_SHT30, "At least one pending alert.");
+    } else {
+        ESP_LOGI(TAG_SHT30, "No pending alert.");
+    }
+
+    if (returnData[0] & (1 << 5)) {
+        ESP_LOGI(TAG_SHT30, "Heater ON.");
+    } else {
+        ESP_LOGI(TAG_SHT30, "Heater OFF.");
+    }
+
+    if (returnData[0] & (1 << 3)) {
+        ESP_LOGI(TAG_SHT30, "RH tracking alert.");
+    } else {
+        ESP_LOGI(TAG_SHT30, "No RH tracking alert.");
+    }
+
+    if (returnData[0] & (1 << 2)) {
+        ESP_LOGI(TAG_SHT30, "T tracking alert.");
+    } else {
+        ESP_LOGI(TAG_SHT30, "No T tracking alert.");
+    }
+
+    if (returnData[1] & (1 << 4)) {
+        ESP_LOGI(TAG_SHT30, "Reset detected.");
+    } else {
+        ESP_LOGI(TAG_SHT30, "No reset detected since last reset.");
+    }
+
+    if (returnData[1] & (1 << 1)) {
+        ESP_LOGI(TAG_SHT30, "Last command not processed. It was either invalid, failed the integrated command checksum.");
+    } else {
+        ESP_LOGI(TAG_SHT30, "Last command executed succesfully.");
+    }
+
+    if (returnData[1] & (1 << 0)) {
+        ESP_LOGI(TAG_SHT30, "Checksum of last transfer failed.");
+    } else {
+        ESP_LOGI(TAG_SHT30, "Checksum of last transfer was correct.");
+    }
+
+    ESP_LOGI(TAG_SHT30, "---------------------------------------------------");
+                         
+    return ok;
 }
 
-sht30_status_t sht30_clear_status_register(sht30_t *sht30){
-
+sht30_status_t sht30_clear_status_register(sht30_t *sht30)
+{
     uint8_t command[2] = {ClrStatusRegister >> 8, ClrStatusRegister & 0x00FF};
     sht30_status_t status;
 
     status = sht30_write(sht30, command);
 
-    if (status != ok){
-        ESP_LOGI(TAG_SHT30, "Error %d\n",status);
-        return status;
+    if (status != ok) {
+        ESP_LOGI(TAG_SHT30, "Error writing command.\n");
+        return error;
     }
 
     return ok;
-
-
 }
 
-uint8_t sht30_calculate_crc(sht30_t *sht30, uint8_t *data){
-
+uint8_t sht30_calculate_crc(sht30_t *sht30, uint8_t *data)
+{
     uint8_t crc = 0xFF;
     uint8_t polynomial = 0x31;
 
@@ -412,20 +462,17 @@ uint8_t sht30_calculate_crc(sht30_t *sht30, uint8_t *data){
     return crc;
 }
 
-float sht30_read_temperature_celsius(sht30_t *sht30){
-
+float sht30_read_temperature_celsius(sht30_t *sht30)
+{
     return (-45 + 175*(((float)sht30->temperature)/((1 << 16) - 1)));
-
 }
 
-float sht30_read_temperature_fahreinheit(sht30_t *sht30){
-
+float sht30_read_temperature_fahreinheit(sht30_t *sht30)
+{
     return (-49 + 315*(((float)sht30->temperature)/((1 << 16) - 1)));
-
 }
 
-float sht30_read_humidity(sht30_t *sht30){
-
+float sht30_read_humidity(sht30_t *sht30)
+{
     return (100*(((float)sht30->humidity)/((1 << 16) - 1)));
-    
 }

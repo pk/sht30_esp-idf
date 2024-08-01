@@ -18,6 +18,8 @@ void app_main(void)
     sht30_init(&sht30, I2C_PORT, SCL_PIN, SDA_PIN, SHT30_ADDRESS_DEF, I2C_SPEED, MAX_WAIT_TIME);
     sht30_heater_control(&sht30, Heater_Disable);
 
+    sht30_read_status_register(&sht30);
+
     int counter = 0;
 
     float temperature;
@@ -30,6 +32,7 @@ void app_main(void)
             ESP_LOGI(TAG, "Starting heater.");
             sht30_heater_control(&sht30, Heater_Enable);
             vTaskDelay(100 / portTICK_PERIOD_MS);
+            sht30_read_status_register(&sht30);
         }
 
         sht30_single_shot(&sht30, Repeatability_High, ClockStretching_Enable);
