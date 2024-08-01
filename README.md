@@ -18,54 +18,61 @@ This library allows you to interface with the SHT30 temperature and humidity sen
 
 To use the SHT30 library, follow these steps:
 
-1. **Add the Library to Your Project:**
+1. **Clone the repository:**
 
-   Copy the `sht30.c` and `sht30.h` files into your project's directory, typically under `components/sht30/` or similar.
+   `got clone https://github.com/petrcernyy/sht30_library`
 
-2. **Configure Your Project:**
+2. **Change the CMakeList.txt:**
 
-   Ensure that your project is configured to include the I2C driver and that the SHT30 sensor is connected to the I2C bus. Update the I2C configuration parameters as needed.
+   Inside the examples folder change the CMakeText in ./main to include the correct path to the library.
+   
+   ```c
+   idf_component_register(SRCS "freertos_periodic.c" "~/esp/sht30_library/component/sht30.c"
+                    INCLUDE_DIRS "." "~/esp/sht30_library/component")
 
-3. **Build and Flash:**
+4. **Build and Flash:**
 
    Build and flash your project using the ESP-IDF build tools. Make sure that the SHT30 sensor is properly connected to the I2C bus and powered.
+
+1. **Second option:**
+
+   Simply copy the sht30.c and sht30.h to your project directory.
+
 
 ## Example Usage
 
 Here's an example of how to use the library to perform a single-shot measurement and read temperature and humidity:
 
 ```c
-#include "sht30.h"
-#include "driver/i2c.h"
 #include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "sht30.h"
 
-#define I2C_PORT I2C_NUM_0
-#define SDA_PIN 21
-#define SCL_PIN 22
-#define SHT30_ADDR SHT30_ADDRESS_DEF
+#define SCL_PIN 8
+#define SDA_PIN 9
+#define I2C_PORT 0
+#define I2C_SPEED 10000
 
-void app_main(void) {
-    sht30_t sensor;
-    sht30_status_t status;
+static const char *TAG = "MAIN";
 
-    // Initialize the sensor
-    status = sht30_init(&sensor, I2C_PORT, SCL_PIN, SDA_PIN, SHT30_ADDR, 100000, 10000);
-    if (status != ok) {
-        printf("Failed to initialize SHT30 sensor\n");
-        return;
-    }
+void app_main(void)
+{
 
-    // Perform a single-shot measurement with high repeatability and clock stretching enabled
-    status = sht30_single_shot(&sensor, Repeatability_High, ClockStretching_Enable);
-    if (status != ok) {
-        printf("Failed to perform single-shot measurement\n");
-        return;
-    }
+    sht30_t sht30;
 
-    // Print temperature and humidity
-    float temperature = sht30_read_temperature_celsius(&sensor);
-    float humidity = sht30_read_humidity(&sensor);
+    sht30_init(&sht30, I2C_PORT, SCL_PIN, SDA_PIN, SHT30_ADDRESS_DEF, I2C_SPEED, MAX_WAIT_TIME);
+    sht30_heater_control(&sht30, Heater_Disable);
 
-    printf("Temperature: %.2f°C\n", temperature);
-    printf("Humidity: %.2f%%\n", humidity);
+    float temperature;
+    float humidity;
+
+    sht30_single_shot(&sht30, Repeatability_High, ClockStretching_Disable);
+    vTaskDelay( 1000 / portTICK_PERIOD_MS );
+
+    temperature = sht30_read_temperature_celsius(&sht30);
+    humidity = sht30_read_humidity(&sht30);
+    ESP_LOGI(TAG, "Temperature is %.2f celsius", temperature);
+    ESP_LOGI(TAG, "Humidity is %.2f", humidity);
+
 }
+
