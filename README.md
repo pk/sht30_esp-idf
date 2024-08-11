@@ -1,18 +1,12 @@
 # SHT30 Library for ESP-IDF
 
-This library allows you to interface with the SHT30 temperature and humidity sensor using ESP-IDF version 5.3. It includes functions for initialization, single-shot and periodic measurements, and other sensor controls.
+This library allows you to interface with the SHT30 temperature and humidity sensor using ESP-IDF version 5.3.
 
 ## Features
 
 - **Single Shot Mode:** Performs one measurements.
 - **Periodic Mode:** Automatically take measurements at specified intervals.
 - **Internal Heater Control:** Enable or disable the sensor's internal heater.
-
-## Files
-
-- `sht30.c`: Contains the implementation of the SHT30 functions.
-- `sht30.h`: Header file with function declarations and definitions.
-- `examples/`: Directory with example applications demonstrating how to use the library.
 
 ## Getting Started
 
