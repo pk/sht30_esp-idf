@@ -22,7 +22,7 @@ sht30_status_t sht30_init(sht30_t *sht30, uint8_t _i2c_port, uint8_t _scl_io_num
     i2c_master_bus_handle_t bus_handle;
     status = i2c_new_master_bus(&i2c_mst_config, &bus_handle);
     if (status != ESP_OK) {
-        ESP_LOGI(TAG_SHT30, "Error while inicializating new i2c master bus.");
+        ESP_LOGI(TAG_SHT30, "Error while initializing new i2c master bus.");
         return init_error;
     }
 
@@ -408,7 +408,7 @@ sht30_status_t sht30_read_status_register(sht30_t *sht30)
     if (returnData[1] & (1 << 1)) {
         ESP_LOGI(TAG_SHT30, "Last command not processed. It was either invalid, failed the integrated command checksum.");
     } else {
-        ESP_LOGI(TAG_SHT30, "Last command executed succesfully.");
+        ESP_LOGI(TAG_SHT30, "Last command executed successfully.");
     }
 
     if (returnData[1] & (1 << 0)) {
@@ -467,7 +467,7 @@ float sht30_read_temperature_celsius(sht30_t *sht30)
     return (-45 + 175*(((float)sht30->temperature)/((1 << 16) - 1)));
 }
 
-float sht30_read_temperature_fahreinheit(sht30_t *sht30)
+float sht30_read_temperature_fahrenheit(sht30_t *sht30)
 {
     return (-49 + 315*(((float)sht30->temperature)/((1 << 16) - 1)));
 }

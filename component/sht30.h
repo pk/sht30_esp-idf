@@ -58,7 +58,7 @@ typedef enum {
     Periodic_RL_10              = 0x2A,     /*!< Periodic mode 10 measurements per seconds repeatability low */
 
     FetchCommand                = 0xE000,   /*!< Periodic mode fetch data command */
-    ARTCommand                  = 0x2B32,   /*!< Periodic mode accerelated data command */
+    ARTCommand                  = 0x2B32,   /*!< Periodic mode accelerated data command */
     BreakCommand                = 0x3093,   /*!< Periodic mode break command */
 
     SoftResetCommand            = 0x30A2,   /*!< Software reset */    
@@ -70,7 +70,7 @@ typedef enum {
     StatusRegister              = 0xF32D,   /*!< Read status register */
     ClrStatusRegister           = 0x3041,   /*!< Clear status register */
 
-    CommandLength               = 2,        /*!< Command lenght, every command consists of two 8 bit values */
+    CommandLength               = 2,        /*!< Command length, every command consists of two 8 bit values */
 
 }sht30_command_t;
 
@@ -126,7 +126,7 @@ typedef enum {
     ok,                         /*!< Value indicating success (no error) */
     data_not_ready,             /*!< The sensor is measuring still */
     data_not_valid,             /*!< Error in validating data */
-    init_error,                 /*!< Error in incialization of i2c */   
+    init_error,                 /*!< Error in initialization of i2c */   
     error                       /*!< Error */
 
 }sht30_status_t;
@@ -152,8 +152,8 @@ typedef struct {
  * @param[in] _scl_speed_hz clock speed of i2c communication.
  * @param[in] _scl_wait_us wait time fot timeout of communication.
  * @return
- *      - ok: Succesfull inicialization of sht30.
- *      - init_error: Unsuccesfull inicialization of sht30.
+ *      - ok: Successful initialization of sht30.
+ *      - init_error: Unsuccessful initialization of sht30.
  */
 sht30_status_t sht30_init(sht30_t *sht30, uint8_t _i2c_port, uint8_t _scl_io_num, uint8_t _sda_io_num,
                         uint8_t _device_address, uint16_t _scl_speed_hz, uint32_t _scl_wait_us);
@@ -165,8 +165,8 @@ sht30_status_t sht30_init(sht30_t *sht30, uint8_t _i2c_port, uint8_t _scl_io_num
  * @param[in] repeatability specifies the repeatability.
  * @param[in] clock enable or disable clock stretching.
  * @return
- *      - ok: Succesfull read of data.
- *      - error: Unsuccesfull read of data.
+ *      - ok: Successful read of data.
+ *      - error: Unsuccessful read of data.
  *      - data_not_ready: When specifying clock stretching disable, data might not be ready yet when trying to read.
  *      - data_not_valid: Temperature or humidity CRC was not valid, probably corrupted data.
  */
@@ -179,8 +179,8 @@ sht30_status_t sht30_single_shot(sht30_t *sht30, sht30_repeatability_t repeatabi
  * @param[in] repeatability specifies the repeatability.
  * @param[in] mps measurements per seconds.
  * @return
- *      - ok: Succesfull start of periodic mode.
- *      - error: Unsuccesfull start od periodic mode.
+ *      - ok: Successful start of periodic mode.
+ *      - error: Unsuccessful start od periodic mode.
  */
 sht30_status_t sht30_periodic(sht30_t *sht30, sht30_repeatability_t repeatability, sht30_measurements_per_seconds_t mps);
 
@@ -189,8 +189,8 @@ sht30_status_t sht30_periodic(sht30_t *sht30, sht30_repeatability_t repeatabilit
  *
  * @param[in] sht30 sht30 struct handle.
  * @return
- *      - ok: Succesfull read of data.
- *      - error: Unsuccesfull read of data.
+ *      - ok: Successful read of data.
+ *      - error: Unsuccessful read of data.
  *      - data_not_ready: Data might not be ready yet when trying to read.
  *      - data_not_valid: Temperature or humidity CRC was not valid, probably corrupted data.
  */
@@ -201,8 +201,8 @@ sht30_status_t sht30_fetch_data(sht30_t *sht30);
  *
  * @param[in] sht30 sht30 struct handle.
  * @return
- *      - ok: Succesfull.
- *      - error: Unsuccesfull.
+ *      - ok: Successful.
+ *      - error: Unsuccessful.
  */
 sht30_status_t sht30_art(sht30_t *sht30);
 
@@ -211,8 +211,8 @@ sht30_status_t sht30_art(sht30_t *sht30);
  *
  * @param[in] sht30 sht30 struct handle.
  * @return
- *      - ok: Succesfull.
- *      - error: Unsuccesfull.
+ *      - ok: Successful.
+ *      - error: Unsuccessful.
  */
 sht30_status_t sht30_break(sht30_t *sht30);
 
@@ -221,8 +221,8 @@ sht30_status_t sht30_break(sht30_t *sht30);
  *
  * @param[in] sht30 sht30 struct handle.
  * @return
- *      - ok: Succesfull.
- *      - error: Unsuccesfull.
+ *      - ok: Successful.
+ *      - error: Unsuccessful.
  */
 sht30_status_t sht30_soft_reset(sht30_t *sht30);
 
@@ -232,8 +232,8 @@ sht30_status_t sht30_soft_reset(sht30_t *sht30);
  * @param[in] sht30 sht30 struct handle.
  * @param[in] control enable/disable heater.
  * @return
- *      - ok: Succesfull.
- *      - error: Unsuccesfull.
+ *      - ok: Successful.
+ *      - error: Unsuccessful.
  */
 sht30_status_t sht30_heater_control(sht30_t *sht30, sht30_heater_t control);
 
@@ -242,8 +242,8 @@ sht30_status_t sht30_heater_control(sht30_t *sht30, sht30_heater_t control);
  *
  * @param[in] sht30 sht30 struct handle.
  * @return
- *      - ok: Succesfull.
- *      - error: Unsuccesfull.
+ *      - ok: Successful.
+ *      - error: Unsuccessful.
  *      - data_not_valid: CRC check vas not valid.
  */
 sht30_status_t sht30_read_status_register(sht30_t *sht30);
@@ -253,8 +253,8 @@ sht30_status_t sht30_read_status_register(sht30_t *sht30);
  *
  * @param[in] sht30 sht30 struct handle.
  * @return
- *      - ok: Succesfull.
- *      - error: Unsuccesfull.
+ *      - ok: Successful.
+ *      - error: Unsuccessful.
  */
 sht30_status_t sht30_clear_status_register(sht30_t *sht30);
 
@@ -264,8 +264,8 @@ sht30_status_t sht30_clear_status_register(sht30_t *sht30);
  * @param[in] sht30 sht30 struct handle.
  * @param[in] command pointer to array holding command for sht30.
  * @return
- *      - ok: Succesfull write.
- *      - error: Unsuccesfull write.
+ *      - ok: Successful write.
+ *      - error: Unsuccessful write.
  */
 sht30_status_t sht30_write(sht30_t *sht30, uint8_t *command);
 
@@ -276,8 +276,8 @@ sht30_status_t sht30_write(sht30_t *sht30, uint8_t *command);
  * @param[in] dataRec pointer to buffer for storing data.
  * @param[in] len length of receiving data.
  * @return
- *      - ok: Succesfull write.
- *      - error: Unsuccesfull write.
+ *      - ok: Successful write.
+ *      - error: Unsuccessful write.
  *      - data_not_ready: Data was not ready for reading.              
  */
 sht30_status_t sht30_read(sht30_t *sht30, uint8_t *dataRec, size_t len);
@@ -305,7 +305,7 @@ float sht30_read_temperature_celsius(sht30_t *sht30);
  * @param[in] sht30 sht30 struct handle.
  * @return float value of the temperature.
  */
-float sht30_read_temperature_fahreinheit(sht30_t *sht30);
+float sht30_read_temperature_fahrenheit(sht30_t *sht30);
 
 /**
  * @brief Gets the humidity of last data that was read from device in percentage.
