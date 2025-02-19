@@ -142,7 +142,20 @@ typedef struct {
 }sht30_t;
 
 /**
- * @brief Inicialization of I2C and SHT struct.
+ * @brief Adds the SHT30 sensor with an existing I2C master bus handle.
+ *
+ * @param[in] sht30 Pointer to an sht30_t structure.
+ * @param[in] bus_handle Existing I2C master bus handle.
+ * @param[in] address I2C address of the SHT30 sensor.
+ * @return
+ *      - ok: Successful initialization of sht30.
+ *      - init_error: Unsuccessful initialization of sht30.
+ */
+sht30_status_t sht30_i2c_add_device(sht30_t *sht30, i2c_master_bus_handle_t bus_handle,
+                                    uint16_t _device_address, uint32_t _scl_speed_hz, uint32_t _scl_wait_us);
+
+/**
+ * @brief Initialization of I2C and SHT struct.
  *
  * @param[in] sht30 sht30 struct handle.
  * @param[in] _i2c_port number of i2c port.

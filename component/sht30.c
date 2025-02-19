@@ -26,6 +26,18 @@ sht30_status_t sht30_init(sht30_t *sht30, i2c_port_num_t _i2c_port, gpio_num_t _
         return init_error;
     }
 
+    if (ESP_OK != sht30_i2c_add_device(sht30, bus_handle, _device_address, _scl_speed_hz, _scl_wait_us)) {
+        return init_error;
+    }
+
+    return ok;
+}
+
+sht30_status_t sht30_i2c_add_device(sht30_t *sht30, i2c_master_bus_handle_t bus_handle,
+                                    uint16_t _device_address, uint32_t _scl_speed_hz, uint32_t _scl_wait_us) 
+{
+    esp_err_t status;
+
     i2c_device_config_t dev_cfg = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = _device_address,
