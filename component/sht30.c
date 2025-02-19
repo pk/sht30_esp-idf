@@ -5,8 +5,8 @@ static const char *TAG_SHT30 = "SHT30";
 i2c_master_dev_handle_t dev_handle;
 
 
-sht30_status_t sht30_init(sht30_t *sht30, uint8_t _i2c_port, uint8_t _scl_io_num, uint8_t _sda_io_num,
-                        uint8_t _device_address, uint16_t _scl_speed_hz, uint32_t _scl_wait_us) 
+sht30_status_t sht30_init(sht30_t *sht30, i2c_port_num_t _i2c_port, gpio_num_t _scl_io_num, gpio_num_t _sda_io_num,
+                          uint16_t _device_address, uint32_t _scl_speed_hz, uint32_t _scl_wait_us) 
 {
     esp_err_t status;
 
