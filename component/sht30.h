@@ -155,6 +155,15 @@ sht30_status_t sht30_i2c_add_device(sht30_t *sht30, i2c_master_bus_handle_t bus_
                                     uint16_t _device_address, uint32_t _scl_speed_hz, uint32_t _scl_wait_us);
 
 /**
+ * @brief Removes the SHT30 sensor from I2C master bus handle.
+ *
+ * @return
+ *      - ok: Successful initialization of sht30.
+ *      - error: Unsuccessful removal of sht30 from the I2C bus.
+ */
+sht30_status_t sht30_i2c_rm_device(void);
+
+/**
  * @brief Initialization of I2C and SHT struct.
  *
  * @param[in] sht30 sht30 struct handle.

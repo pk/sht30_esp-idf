@@ -48,9 +48,27 @@ sht30_status_t sht30_i2c_add_device(sht30_t *sht30, i2c_master_bus_handle_t bus_
     status = i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handle);
     if (status != ESP_OK) {
         ESP_LOGI(TAG_SHT30, "Error while adding i2c device on bus.");
+        dev_handle = NULL;
         return init_error;
     }
 
+    return ok;
+}
+
+sht30_status_t sht30_i2c_rm_device(void)
+{
+    // Device not initialized or already removed
+    if (dev_handle == NULL) {
+        return ok;
+    }
+
+    esp_err_t err = i2c_master_bus_rm_device(dev_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG_SHT30, "Failed to remove SHT30 device from bus: %s", esp_err_to_name(err));
+        return error;
+    }
+
+    dev_handle = NULL;
     return ok;
 }
 
